@@ -1,2 +1,3 @@
 Django
-milkman
+factory_boy
+six

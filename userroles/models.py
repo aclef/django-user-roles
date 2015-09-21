@@ -32,21 +32,18 @@ class UserRole(models.Model):
 
 
 def set_user_role(user, role, profile=None):
+
+    try:
+        UserRole.objects.get(user=user).delete()
+    except UserRole.DoesNotExist:
+        pass
+    
     if profile:
-        try:
-            UserRole.objects.get(user=user).delete()
-        except UserRole.DoesNotExist:
-            pass
         profile.user = user
         profile.name = role.name
         profile.child = str(profile.__class__.__name__).lower()
-
     else:
-        try:
-            profile = UserRole.objects.get(user=user)
-        except UserRole.DoesNotExist:
-            profile = UserRole(user=user, name=role.name)
-        else:
-            profile.name = role.name
+        profile = UserRole(user=user, name=role.name)
+        profile.name = role.name
 
     profile.save()

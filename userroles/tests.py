@@ -3,11 +3,12 @@
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from milkman.dairy import milkman
 from userroles.models import set_user_role, UserRole
 from userroles.testapp.models import TestModeratorProfile
 from userroles.utils import SettingsTestCase
 from userroles import Roles
+
+from userroles.testapp.factories import UserFactory
 
 # Test setup
 
@@ -69,7 +70,7 @@ class UserRoleTests(TestCase):
 
     def setUp(self):
         super(UserRoleTests, self).setUp()
-        self.user = milkman.deliver(User)
+        self.user = UserFactory()
         set_user_role(self.user, roles.manager)
 
     def test_role_comparison(self):
@@ -113,7 +114,8 @@ class UserRoleTests(TestCase):
         """
         Set a role that takes a profile.
         """
-        set_user_role(self.user, roles.moderator, TestModeratorProfile(stars=5))
+        set_user_role(self.user, roles.moderator,
+                      TestModeratorProfile(stars=5))
         self.assertTrue(self.user.role.is_moderator)
         self.assertEquals(self.user.role.profile.stars, 5)
 
@@ -144,9 +146,7 @@ class UserRoleTests(TestCase):
 class ViewTests(TestCase):
     def setUp(self):
         super(ViewTests, self).setUp()
-        self.user = milkman.deliver(User)
-        self.user.set_password('password')
-        self.user.save()
+        self.user = UserFactory()
         self.client.login(username=self.user.username, password='password')
 
     def test_get_allowed_view(self):

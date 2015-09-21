@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+import six
 try:
     from importlib import import_module
 except ImportError:
     from django.utils.importlib import import_module
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.3'
 
 
 _IMPORT_FAILED = "Could not import role profile '%s'"
@@ -34,6 +35,9 @@ class Role(object):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Roles(object):
     _roles_dict = None
@@ -46,7 +50,7 @@ class Roles(object):
         if self._roles_dict is None:
             self._roles_dict = {}
             for item in self._config:
-                if isinstance(item, basestring):
+                if isinstance(item, six.string_types):
                     # An item like 'manager'
                     self._roles_dict[item] = None
                 else:

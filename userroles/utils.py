@@ -21,7 +21,7 @@ class TestSettingsManager(object):
         self._original_settings = {}
 
     def set(self, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs. items():
             self._original_settings.setdefault(k, getattr(settings, k,
                                                           NO_SETTING))
             setattr(settings, k, v)
@@ -34,7 +34,7 @@ class TestSettingsManager(object):
         syncdb.Command().execute(verbosity=0)
 
     def revert(self):
-        for k, v in self._original_settings.iteritems():
+        for k, v in self._original_settings. items():
             if v == NO_SETTING:
                 delattr(settings, k)
             else:
