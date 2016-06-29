@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from six import python_2_unicode_compatible
 from userroles import roles
 
 
@@ -16,7 +17,7 @@ class UserRole(models.Model):
         return getattr(self, self.child)
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == getattr(other, 'name', None)
 
     def __getattr__(self, name):
         if name.startswith('is_'):
@@ -27,7 +28,8 @@ class UserRole(models.Model):
         raise AttributeError("'%s' object has no attribute '%s'" %
                               (self.__class__.__name__, name))
 
-    def __unicode__(self):
+    @python_2_unicode_compatible
+    def __str__(self):
         return self.name
 
 
