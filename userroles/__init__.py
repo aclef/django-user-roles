@@ -1,14 +1,10 @@
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
-import six
-try:
-    from importlib import import_module
-except ImportError:
-    from django.utils.importlib import import_module
+from importlib import import_module
 
+import six
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 
 __version__ = '0.1.3'
-
 
 _IMPORT_FAILED = "Could not import role profile '%s'"
 _INCORRECT_ARGS = "USER_ROLES should be a list of strings and/or two-tuples"
@@ -25,18 +21,6 @@ def _import_class_from_string(class_path):
     return getattr(importlib.import_module(module_path), class_name)
 
 
-class Role(object):
-    """
-    A single role, eg as returned by `roles.moderator`.
-    """
-    def __init__(self, name):
-        self.name = name
-
-    @six.python_2_unicode_compatible
-    def __str__(self):
-        return self.name
-
-
 class Roles(object):
     _roles_dict = None
 
@@ -46,14 +30,10 @@ class Roles(object):
         Load list style config into dict of {role_name: role_class}
         """
         if self._roles_dict is None:
+            from userroles.models import Role
             self._roles_dict = {}
-            for item in self._config:
-                if isinstance(item, six.string_types):
-                    # An item like 'manager'
-                    self._roles_dict[item] = None
-                else:
-                    # Anything else
-                    raise ImproperlyConfigured(_INCORRECT_ARGS)
+            for item in Role.objects.all():
+                self._roles_dict[item.name] = item.verbose_name
         return self._roles_dict
 
     @property
@@ -62,15 +42,7 @@ class Roles(object):
         Return a list of two-tuples of role names, suitable for use as the
         'choices' argument to a model field.
         """
-        return [(role, role) for role in self.roles_dict.keys()]
-
-    def __init__(self, config=None):
-        """
-        By default the Roles object will be created using configuration from
-        the django settings file, but you can also set the configuration
-        explicitly, for example, when testing.
-        """
-        self._config = config or getattr(settings, 'USER_ROLES', ())
+        return [role for role in six.iteritems(self.roles_dict)]
 
     def __getattr__(self, name):
         """
@@ -78,8 +50,12 @@ class Roles(object):
         For example: `roles.moderator`
         """
         if name in self.roles_dict.keys():
-            return Role(name=name)
-        else:
-            raise AttributeError("No such role exists '%s'" % name)
+            from userroles.models import Role
+            try:
+                return Role.objects.get(name=name)
+            except ObjectDoesNotExist:
+                pass
+        raise AttributeError("No such role exists '%s'" % name)
+
 
 roles = Roles()
