@@ -35,7 +35,7 @@ class UserRole(models.Model):
 
     def __getattr__(self, name):
         if name.startswith('is_'):
-            return self.role.name == name[3:] or getattr(self.role.base_role, 'name', None)== name[3:]
+            return getattr(self.role, 'name', None) == name[3:] or getattr(self.role.base_role, 'name', None)== name[3:]
         return super().__getattr__(name)
         # if name not in ['name', 'base_role_name']:
         #     raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, name))
